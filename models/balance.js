@@ -30,7 +30,7 @@ export default class Balance extends Model {
       },
   
       },
-    }, {sequelize})
+    }, {updatedAt: false, sequelize})
   }
 
   static associate(models) {

@@ -23,13 +23,12 @@ export default class Order extends Model {
       deliveryStatus: {
         type: DataTypes.ENUM,
         values: ['IN_TRANSIT', 'DELIVERED', 'RECIEVED'],
-        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
       },
-    }, {sequelize})
+    }, {updatedAt: false, sequelize})
   }
 
   static associate(models) {

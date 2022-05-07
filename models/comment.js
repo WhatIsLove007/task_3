@@ -56,7 +56,7 @@ export default class Comment extends Model {
         type: DataTypes.DATE,
         allowNull: false,
       },
-    }, {sequelize})
+    }, {updatedAt: false, sequelize})
   }
 
   static associate(models) {

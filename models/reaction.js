@@ -27,11 +27,12 @@ export default class Reaction extends Model {
         type: DataTypes.DATE,
         allowNull: false,
       },
-    }, {sequelize})
+    }, {updatedAt: false, sequelize})
   }
 
   static associate(models) {
-
+    this.belongsTo(models.User, {onDelete: 'cascade', foreignKey: 'userId'});
+    this.belongsTo(models.Comment, {onDelete: 'cascade', foreignKey: 'commentId'});
   }
   
 };

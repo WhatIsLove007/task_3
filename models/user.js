@@ -37,14 +37,14 @@ export default class User extends Model {
         type: DataTypes.DATE,
         allowNull: false,
       },
-  }, {sequelize})
+  }, {updatedAt: false, sequelize})
   }
 
   static associate(models) {
     this.hasOne(models.Balance, {onDelete: 'cascade', foreignKey: 'userId'});
     this.hasMany(models.Order, {onDelete: 'cascade', foreignKey: 'userId'});
     this.hasMany(models.Comment, {onDelete: 'cascade', foreignKey: 'userId'})
-    this.hasMany(models.Comment, {through: models.Reaction, foreignKey: 'userId', onDelete: 'cascade'});
+    // this.hasMany(models.Comment, {through: models.Reaction, foreignKey: 'userId', onDelete: 'cascade'});
   }
   
 };

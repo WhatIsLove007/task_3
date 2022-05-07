@@ -22,7 +22,6 @@ module.exports = {
       deliveryStatus: {
         type: Sequelize.ENUM,
         values: ['IN_TRANSIT', 'DELIVERED', 'RECIEVED'],
-        allowNull: false,
       },
       createdAt: {
         type: Sequelize.DATE,
