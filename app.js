@@ -5,7 +5,6 @@ import { ApolloServer } from 'apollo-server-express';
 import { typeDefs } from './graphql/schema.js';
 import { resolvers } from './graphql/resolvers.js';
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,6 +16,13 @@ async function startApolloServer(typeDefs, resolvers) {
   
 }
 startApolloServer(typeDefs, resolvers);
+
+
+app.use(express.json());
+
+app.post('/auth/register', (request, response) => {
+
+})
 
 
   

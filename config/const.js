@@ -1,0 +1,14 @@
+export const USER_STATUSES = {
+   ACTIVE: 'ACTIVE', 
+   BANNED: 'BANNED',
+};
+
+export const DELIVERY_STATUSES = {
+   IN_TRANSIT: 'IN_TRANSIT', 
+   DELIVERED: 'DELIVERED', 
+   RECEIVED: 'RECIEVED',
+};
+
+export const AUTHORIZATION_SECRET_KEY = process.env.SECRET_KEY;
+export const AUTHORIZATION_TOKEN_EXPIRE_REMEMBER = 30 * 24 * 60 * 60; // 30 days (sec)
+export const AUTHORIZATION_TOKEN_EXPIRE = 24 * 60 * 60;

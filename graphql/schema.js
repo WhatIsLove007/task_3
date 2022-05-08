@@ -93,4 +93,9 @@ export const typeDefs = gql`
     getComments(productId: Int): [Comment]
   }
 
+
+  type Mutation {
+    createUser(email: String!, fullName: String!, phone: String!, password: String!): User!
+  }
+
 `;
