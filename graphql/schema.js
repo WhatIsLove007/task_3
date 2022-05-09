@@ -1,82 +1,35 @@
+import {_} from 'lodash';
 import { gql } from 'apollo-server-express';
+
+import User from './types/user.js';
+import Balance from './types/balance.js';
+import Order from './types/order.js';
+import OrderProduct from './types/orderProduct.js';
+import Product from './types/product.js';
+import Category from './types/category.js';
+import Comment from './types/comment.js';
+import Reaction from './types/reaction.js';
+
+
 
 
 export const typeDefs = gql`
 
-  type User {
-    id: Int
-    email: String
-    fullName: String
-    phone: String
-    status: String
-    createdAt: String
-    Balance: Balance
-  }
+  ${User.typeDefs()}
 
-  type Balance {
-    userId: Int
-    account: Float
-    discount: Int
-  }
-
-  type Order {
-    id: Int
-    userId: Int
-    paid: Boolean
-    deliveryStatus: String
-    createdAt: String
-    OrderProducts: [OrderProduct]
-  }
-
-  type OrderProduct {
-    orderId: Int
-    productId: Int
-    quantity: Int
-    purchasePrice: Float
-    createdAt: String
-    updatedAt: String
-    Product: Product
-  }
-
-  type Category {
-    id: Int
-    name: String
-    parentId: Int
-    createdAt: String
-    updatedAt: String
-  }
-
-  type Product {
-    id: Int
-    categoryId: Int
-    name: String
-    description: String
-    price: Int
-    createdAt: String
-    updatedAt: String
-    Category: Category
-  }
-
-  type Comment {
-    id: Int
-    userId: Int
-    productId: Int
-    commentId: Int
-    type: String
-    assesment: Int
-    comment: String
-    advantages: String
-    disadvantages: String
-    createdAt: String
-    Reactions: [Reaction]
-  }
+  ${Balance.typeDefs()}
   
-  type Reaction {
-    commentId: Int
-    userId: Int
-    reaction: String
-    createdAt: String
-  }
+  ${Order.typeDefs()}
+
+  ${OrderProduct.typeDefs()}
+
+  ${Product.typeDefs()}
+
+  ${Category.typeDefs()}
+
+  ${Comment.typeDefs()}
+
+  ${Reaction.typeDefs()}
 
 
   type Query {
@@ -99,3 +52,19 @@ export const typeDefs = gql`
   }
 
 `;
+
+
+function combineResolvers() {
+  return _.merge(
+    User.resolver(),
+    Balance.resolver(),
+    Order.resolver(),
+    OrderProduct.resolver(),
+    Product.resolver(),
+    Category.resolver(),
+    Comment.resolver(),
+    Reaction.resolver(),
+  )
+}
+
+export const resolvers = combineResolvers();
