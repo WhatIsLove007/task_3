@@ -8,17 +8,20 @@ export default class Order {
       return {
 
          Query: {
-            getOrder: async (_, { id }) => {
+            getOrder: async (_, { id }, context) => {
+               
+               if (context.user?.id !== id) throw new Error('FORBIDDEN');
+
                return await models.Order.findByPk(id, {
-                 include: {
-                   model: models.OrderProduct, 
-                   required: false,
-                   include: {
-                     model: models.Product,
+                  include: {
+                     model: models.OrderProduct, 
                      required: false,
                      include: {
-                       model: models.Category,
-                       required: false,
+                        model: models.Product,
+                        required: false,
+                        include: {
+                           model: models.Category,
+                           required: false,
                      }
                    }
                  }

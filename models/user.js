@@ -38,8 +38,9 @@ export default class User extends Model {
         allowNull: false,
       },
       isAdmin: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
       },
       
   }, {updatedAt: false, sequelize})

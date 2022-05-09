@@ -2,22 +2,20 @@ import express from 'express';
 import dotenv from 'dotenv/config';
 import { ApolloServer } from 'apollo-server-express';
 
-import {typeDefs, resolvers} from './graphql/schema.js';
+import {typeDefs, resolvers, context} from './graphql/schema.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 
 async function startApolloServer(typeDefs, resolvers) {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,  
-  });
+
+  const server = new ApolloServer({ typeDefs, resolvers, context });
   await server.start();
   server.applyMiddleware({app});
   
 }
-startApolloServer(typeDefs, resolvers);
+startApolloServer(typeDefs, resolvers, context);
 
 
 app.use(express.json());

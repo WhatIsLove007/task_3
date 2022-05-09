@@ -12,8 +12,19 @@ export default class User {
       return {
 
          Query: {
-            getUsers: async () => await models.User.findAll({include: models.Balance}),
-            getUser: async (_, { id }) => await models.User.findByPk(id, {include: models.Balance}),        
+            getUsers: async (parent, args, context) => {
+               
+               if (!context.user) throw new Error('FORBIDDEN');
+
+               return await models.User.findAll({include: models.Balance});
+
+            },
+            getUser: async (parent, { id }, context) => {
+
+               if (context.user?.isAdmin === false) throw new Error('FORBIDDEN');
+               
+               return await models.User.findByPk(id, {include: models.Balance})
+         },        
          },
 
          Mutation: {
@@ -40,8 +51,7 @@ export default class User {
                  phone,
                  status: USER_STATUSES.ACTIVE,
                });
-         
-               return ({newUser, token: userAuthentication.generateAccessToken(newUser.id)});
+               return ({newUser, authorization: userAuthentication.generateAccessToken(newUser.id, newUser.email)});
          
              }
          

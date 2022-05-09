@@ -9,6 +9,7 @@ import Product from './types/product.js';
 import Category from './types/category.js';
 import Comment from './types/comment.js';
 import Reaction from './types/reaction.js';
+import * as userAuthentication from '../utils/userAuthentication.js';
 
 
 
@@ -68,3 +69,22 @@ function combineResolvers() {
 }
 
 export const resolvers = combineResolvers();
+
+
+export const context = async context => {
+
+  const authorization = context.req.headers.authorization;
+  if (!authorization) {
+    context.user = null;
+    return context;
+  }
+
+  const user = await userAuthentication.authenticateToken(authorization);
+  if (!user) {
+    context.user = null;
+    return context;
+  }
+
+  context.user = user;
+  return context;
+}

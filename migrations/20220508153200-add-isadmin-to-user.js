@@ -6,6 +6,7 @@ module.exports = {
     await queryInterface.addColumn('Users', 'isAdmin', {
       type: Sequelize.BOOLEAN,
       defaultValue: false,
+      allowNull: false,
     });
   },
 
