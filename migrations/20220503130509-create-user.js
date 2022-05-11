@@ -31,6 +31,7 @@ module.exports = {
         type: Sequelize.ENUM,
         values: ['ACTIVE', 'BANNED'],
         allowNull: false,
+        defaulfValue: 'ACTIVE',
       },
       createdAt: {
         type: Sequelize.DATE,

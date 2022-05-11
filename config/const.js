@@ -3,12 +3,17 @@ export const USER_STATUSES = {
    BANNED: 'BANNED',
 };
 
+export const USER_ROLES = {
+   CUSTOMER: 'CUSTOMER',
+   MANAGER: 'MANAGER',
+   ADMIN: 'ADMIN',
+}
+
 export const DELIVERY_STATUSES = {
    IN_TRANSIT: 'IN_TRANSIT', 
    DELIVERED: 'DELIVERED', 
    RECEIVED: 'RECIEVED',
 };
 
-export const AUTHORIZATION_SECRET_KEY = process.env.SECRET_KEY;
-export const AUTHORIZATION_TOKEN_EXPIRE_REMEMBER = 30 * 24 * 60 * 60; // 30 days (sec)
-export const AUTHORIZATION_TOKEN_EXPIRE = 24 * 60 * 60;
+export const AUTHORIZATION_ACCESS_SECRET_KEY = process.env.ACCESS_SECRET_KEY;
+export const AUTHORIZATION_REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY;

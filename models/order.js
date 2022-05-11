@@ -19,6 +19,7 @@ export default class Order extends Model {
       paid: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
+        defaultValue: false,
       },
       deliveryStatus: {
         type: DataTypes.ENUM,

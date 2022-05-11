@@ -32,16 +32,18 @@ export default class User extends Model {
         type: DataTypes.ENUM,
         values: ['ACTIVE', 'BANNED'],
         allowNull: false,
+        defaulfValue: 'ACTIVE',
       },
       createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
       },
-      isAdmin: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
+      role: {
+        type: DataTypes.ENUM,
+        values: ['CUSTOMER', 'MANAGER', 'ADMIN'],
         allowNull: false,
-      },
+        defaultValue: 'CUSTOMER',
+     },
       
   }, {updatedAt: false, sequelize})
   }

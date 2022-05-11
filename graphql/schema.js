@@ -10,6 +10,7 @@ import Category from './types/category.js';
 import Comment from './types/comment.js';
 import Reaction from './types/reaction.js';
 import * as userAuthentication from '../utils/userAuthentication.js';
+import { USER_STATUSES } from "../config/const.js";
 
 
 
@@ -37,14 +38,27 @@ export const typeDefs = gql`
     getUsers: [User]
     getUser(id: Int): User
 
-    getOrder(id: Int): Order
+    replenishmentAccount(userId: Int!, amountOfMoney: Float!): User
+    authorizeUser(id: Int!, password: String!): User
+    addProductToOrder(userId: Int!, productId: Int!, productQuantity: Int): User
+    removeProductFromOrder(userId: Int!, productId: Int!, orderId: Int!): User
+    removeOrder(userId: Int!, orderId: Int!): User
+    completeOrder(userId: Int!, orderId: Int!): User
+
+    getOrder(id: Int!): Order
 
     getCategories: [Category]
+
+    addCategory(name: String!, parentId: Int): Category
+    removeCategory(id: Int!): Category
 
     getProducts: [Product]
     getProduct(id: Int): Product
 
-    getComments(productId: Int): [Comment]
+    addProduct(name: String, description: String!, categoryId: Int!, price: Float!): Product
+    removeProduct(id: Int!): Product
+
+    getComments(productId: Int!): [Comment]
   }
 
 
@@ -80,7 +94,7 @@ export const context = async context => {
   }
 
   const user = await userAuthentication.authenticateToken(authorization);
-  if (!user) {
+  if (!user || user.role === USER_STATUSES.BANNED) {
     context.user = null;
     return context;
   }

@@ -1,11 +1,14 @@
 import jwt from 'jsonwebtoken';
 import models from '../models';
 
-import {AUTHORIZATION_SECRET_KEY} from '../config/const.js';
+import {
+   AUTHORIZATION_ACCESS_SECRET_KEY,
+   AUTHORIZATION_REFRESH_SECRET_KEY
+} from '../config/const.js';
 
 
 export const generateAccessToken = (id, email) => {
-   return `Bearer ${jwt.sign({id, email}, AUTHORIZATION_SECRET_KEY, {expiresIn: '1800s'})}`;
+   return `Bearer ${jwt.sign({id, email}, AUTHORIZATION_ACCESS_SECRET_KEY, {expiresIn: '1h'})}`;
 };
 
 export const authenticateToken = async authorization => {
@@ -16,7 +19,7 @@ export const authenticateToken = async authorization => {
 
    try {
 
-      const decoded = jwt.verify(token, AUTHORIZATION_SECRET_KEY);
+      const decoded = jwt.verify(token, AUTHORIZATION_ACCESS_SECRET_KEY);
 
       const user = await models.User.findOne({where: {id: decoded.id, email: decoded.email}});
       if (!user) return null;

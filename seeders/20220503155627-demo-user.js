@@ -9,7 +9,6 @@ module.exports = {
         fullName: 'Elon Musk',
         phone: '666-666-666',
         passwordHash: '$2b$10$sO5octfPuuba9h3epBhihesHUisCwB32giEaorgvVDoGiq6hMCAPC',
-        status: 'ACTIVE',
         createdAt: new Date(),
       },
       {
@@ -17,7 +16,6 @@ module.exports = {
         fullName: 'Bill Gates',
         phone: '049-777-000',
         passwordHash: '$2b$10$fnCuU/JyXhH50noAQLjhb.SV/13RoBMtAyFIH1cNkFPnnmOo5qhHS',
-        status: 'ACTIVE',
         createdAt: new Date(),
       },
       {
@@ -25,7 +23,6 @@ module.exports = {
         fullName: 'Donald Trump',
         phone: '00-000-001',
         passwordHash: '$2b$10$nOUIs5kJ7naTuTFkBy1veuK0kSxUFXfuaOKdOKf9xYT0KKIGSJwFa',
-        status: 'ACTIVE',
         createdAt: new Date(),
       },
 
@@ -34,7 +31,6 @@ module.exports = {
         fullName: 'Eugene Haiday',
         phone: '+380999056666',
         passwordHash: '$2b$10$Z6V6rl10Rx5E6m1JdCCrbeahNP4RnEmMOuQAcsPAvLlaMSVaQLSMG',
-        status: 'ACTIVE',
         createdAt: new Date(),
       },
       {
@@ -42,7 +38,6 @@ module.exports = {
         fullName: 'Vladislav Nagorniy',
         phone: '+380669596666',
         passwordHash: '$2b$10$yInzlrAtgeDiBBySt7eAYux9auIWV7UofYzd/PKZnw/7Xsah7yxCJ',
-        status: 'ACTIVE',
         createdAt: new Date(),
       },
     ], {});
