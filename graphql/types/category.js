@@ -13,6 +13,10 @@ export default class Category {
          Query: {
             getCategories: async () => await models.Category.findAll(),
 
+         },
+
+         Mutation: {
+            
             addCategory: async (parent, {name, parentId}, context) => {
 
                if (context.user?.role !== USER_ROLES.ADMIN) throw new Error('FORBIDDEN');
@@ -53,9 +57,7 @@ export default class Category {
                   throw new Error(error.message);
                }
             }
-         },
 
-         Mutation: {         
          }
       }
    }

@@ -9,6 +9,7 @@ export default class Comment {
       return {
 
          Query: {
+
             getComments: async (_, { productId }) => {
                return await models.Comment.findAll({
                  where: {productId},
@@ -17,10 +18,35 @@ export default class Comment {
                    required: false,
                  }
                });
-            },         
+            },
+                        
          },
 
-         Mutation: {         
+         Mutation: {
+
+            addComment: async (parent, { userId, productId, commentId, 
+               comment, advantages, disadvantages }, context) => {
+
+
+               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+
+               // Here must be a code...
+               return models.Comment.create({
+                  userId, 
+                  productId, 
+                  commentId, 
+                  comment, 
+                  advantages, 
+                  disadvantages,
+               });
+
+            },
+
+            removeComment: async (parent, {id, userId}, context) => {
+               // Here must be a code...
+               
+            }
+    
          }
       }
    }

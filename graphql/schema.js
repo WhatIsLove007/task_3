@@ -38,32 +38,41 @@ export const typeDefs = gql`
     getUsers: [User]
     getUser(id: Int): User
 
-    replenishmentAccount(userId: Int!, amountOfMoney: Float!): User
     authorizeUser(id: Int!, password: String!): User
-    addProductToOrder(userId: Int!, productId: Int!, productQuantity: Int): User
-    removeProductFromOrder(userId: Int!, productId: Int!, orderId: Int!): User
-    removeOrder(userId: Int!, orderId: Int!): User
-    completeOrder(userId: Int!, orderId: Int!): User
 
     getOrder(id: Int!): Order
 
     getCategories: [Category]
 
-    addCategory(name: String!, parentId: Int): Category
-    removeCategory(id: Int!): Category
-
     getProducts: [Product]
     getProduct(id: Int): Product
 
-    addProduct(name: String, description: String!, categoryId: Int!, price: Float!): Product
-    removeProduct(id: Int!): Product
-
     getComments(productId: Int!): [Comment]
+    
   }
 
 
   type Mutation {
     createUser(email: String!, fullName: String!, phone: String!, password: String!): User!
+
+    replenishmentAccount(userId: Int!, amountOfMoney: Float!): User
+    addProductToOrder(userId: Int!, productId: Int!, productQuantity: Int): User
+    removeProductFromOrder(userId: Int!, productId: Int!, orderId: Int!): User
+    removeOrder(userId: Int!, orderId: Int!): User
+    completeOrder(userId: Int!, orderId: Int!): User
+
+    addCategory(name: String!, parentId: Int): Category
+    removeCategory(id: Int!): Category
+
+    addProduct(name: String, description: String!, categoryId: Int!, price: Float!): Product
+    removeProduct(id: Int!): Product
+
+    addComment(userId: Int!, productId: Int!, commentId: Int, type: String!, assesment: Int, 
+      comment: String, advantages: String, disadvantages: String): Comment
+    removeComment(id: Int!, userId: Int!): Comment
+
+    addReaction(commentId: Int!, userId: Int!, reaction: String): Reaction
+
   }
 
 `;
@@ -94,7 +103,7 @@ export const context = async context => {
   }
 
   const user = await userAuthentication.authenticateToken(authorization);
-  if (!user || user.role === USER_STATUSES.BANNED) {
+  if (!user || user.status === USER_STATUSES.BANNED) {
     context.user = null;
     return context;
   }

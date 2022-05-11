@@ -29,6 +29,51 @@ export default class User {
                return await models.User.findByPk(id, {include: models.Balance})
             },
 
+            authorizeUser: async (parent, { id, password }) => {
+
+               if (!id) throw new Error('Incorrect id');
+               if (!entryDataValidation.validatePassword(password)) throw new Error('Incorrect password');
+
+               const user = await models.User.findByPk(id);
+               if (!user) throw new Error('User not found');
+
+               if (!(await passwordHashing.compare(password, user.passwordHash))) {
+                  throw new Error('FORBIDDEN');
+               }
+
+               return ({user, authorization: userAuthentication.generateAccessToken(user.id, user.email)});
+
+            }
+         },
+
+         Mutation: {
+            createUser: async (parent, args) => {
+
+               const {email, password, fullName, phone} = args;
+         
+               if (!entryDataValidation.validateEmail(email)) {
+                 throw new Error('Incorrect email');
+               }
+         
+               if (!entryDataValidation.validatePassword(password)) {
+                 throw new Error('Incorrect password');
+         
+               }
+         
+               const user = await models.User.findOne({where: {email}});
+               if (user) throw new Error('User already exists');
+         
+               const newUser = await models.User.create({
+                 email,
+                 passwordHash: await passwordHashing.hash(password),
+                 fullName,
+                 phone,
+                 status: USER_STATUSES.ACTIVE,
+               });
+               return ({newUser, authorization: userAuthentication.generateAccessToken(newUser.id, newUser.email)});
+         
+            },
+
             replenishmentAccount: async (parent, { userId, amountOfMoney }, context) => {
 
                if (context.user?.id !== userId) throw new Error('FORBIDDEN');
@@ -244,50 +289,6 @@ export default class User {
 
             },
 
-            authorizeUser: async (parent, { id, password }) => {
-
-               if (!id) throw new Error('Incorrect id');
-               if (!entryDataValidation.validatePassword(password)) throw new Error('Incorrect password');
-
-               const user = await models.User.findByPk(id);
-               if (!user) throw new Error('User not found');
-
-               if (!(await passwordHashing.compare(password, user.passwordHash))) {
-                  throw new Error('FORBIDDEN');
-               }
-
-               return ({user, authorization: userAuthentication.generateAccessToken(user.id, user.email)});
-
-            }
-         },
-
-         Mutation: {
-            createUser: async (parent, args) => {
-
-               const {email, password, fullName, phone} = args;
-         
-               if (!entryDataValidation.validateEmail(email)) {
-                 throw new Error('Incorrect email');
-               }
-         
-               if (!entryDataValidation.validatePassword(password)) {
-                 throw new Error('Incorrect password');
-         
-               }
-         
-               const user = await models.User.findOne({where: {email}});
-               if (user) throw new Error('User already exists');
-         
-               const newUser = await models.User.create({
-                 email,
-                 passwordHash: await passwordHashing.hash(password),
-                 fullName,
-                 phone,
-                 status: USER_STATUSES.ACTIVE,
-               });
-               return ({newUser, authorization: userAuthentication.generateAccessToken(newUser.id, newUser.email)});
-         
-             }
          
          }
       }

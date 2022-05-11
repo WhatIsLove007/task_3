@@ -1,7 +1,8 @@
 import {gql} from 'apollo-server-express';
 
 import models from '../../models';
-import {USER_ROLES} from '../../config/const.js'
+import {USER_ROLES} from '../../config/const.js';
+import * as userAuthentication from '../../utils/userAuthentication.js'
 
 
 export default class Product {
@@ -13,6 +14,11 @@ export default class Product {
 
             getProduct: async (parent, { id }) => await models.Product.findByPk(id, {include: models.Category}),
             
+
+         },
+
+         Mutation: {
+
             addProduct: async (parent, {name, description, categoryId, price}, context) => {
 
                if (context.user?.role !== USER_ROLES.ADMIN) throw new Error('FORBIDDEN');
@@ -51,10 +57,7 @@ export default class Product {
                }
             
             }      
-
-         },
-
-         Mutation: {         
+            
          }
       }
    }
