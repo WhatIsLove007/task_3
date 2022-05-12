@@ -11,6 +11,10 @@ export default class Product {
    static resolver() {
       return {
 
+         Product: {
+            category: product => product.getCategory(),
+         },
+
          Query: {
             getProducts: async () => await models.Product.findAll({include: models.Category}),
 
@@ -75,7 +79,7 @@ export default class Product {
             price: Int
             createdAt: String
             updatedAt: String
-            Category: Category
+            category: Category
          }
      
           

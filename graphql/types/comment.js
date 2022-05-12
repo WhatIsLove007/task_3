@@ -8,17 +8,13 @@ export default class Comment {
    static resolver() {
       return {
 
+         Comment: {
+            reactions: comment => comment.getReactions(),
+         },
+
          Query: {
 
-            getComments: async (_, { productId }) => {
-               return await models.Comment.findAll({
-                 where: {productId},
-                 include: {
-                   model: models.Reaction,
-                   required: false,
-                 }
-               });
-            },
+            getComments: async (_, { productId }) => await models.Comment.findAll({where: {productId}}),
                         
          },
 
@@ -76,7 +72,7 @@ export default class Comment {
             advantages: String
             disadvantages: String
             createdAt: String
-            Reactions: [Reaction]
+            reactions: [Reaction]
          }
           
       `

@@ -9,6 +9,10 @@ export default class Order {
    static resolver() {
       return {
 
+         Order: {
+            orderProduct: order => order.getOrderProducts(),
+         },
+
          Query: {
             getOrder: async (_, { id }, context) => {
                
@@ -45,7 +49,7 @@ export default class Order {
             paid: Boolean
             deliveryStatus: String
             createdAt: String
-            OrderProducts: [OrderProduct]
+            orderProduct: [OrderProduct]
          }
      
           

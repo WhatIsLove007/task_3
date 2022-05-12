@@ -36,7 +36,7 @@ export const typeDefs = gql`
 
   type Query {
     getUsers: [User]
-    getUser(id: Int): User
+    getUser(id: Int): User!
 
     authorizeUser(id: Int!, password: String!): User
 
@@ -68,7 +68,7 @@ export const typeDefs = gql`
     removeProduct(id: Int!): Product
 
     addComment(userId: Int!, productId: Int!, commentId: Int, type: String!, assessment: Int, 
-      comment: String, advantages: String, disadvantages: String): Comment
+      comment: String!, advantages: String, disadvantages: String): Comment
     removeComment(id: Int!, userId: Int!): Comment
 
     addReaction(commentId: Int!, userId: Int!, reaction: String): Reaction

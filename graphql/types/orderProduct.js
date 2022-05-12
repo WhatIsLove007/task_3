@@ -5,6 +5,10 @@ export default class OrderProduct {
    static resolver() {
       return {
 
+         OrderProduct: {
+            product: orderProduct => orderProduct.getProduct(),
+         },
+
          Query: {
          },
 
@@ -23,7 +27,7 @@ export default class OrderProduct {
             purchasePrice: Float
             createdAt: String
             updatedAt: String
-            Product: Product
+            product: Product
          }
      
           

@@ -14,13 +14,18 @@ export default class User {
    static resolver() {
       return {
 
+         User: {
+            balance: user => user.getBalance(),
+            order: user => user.getOrders(),
+         },
+
          Query: {
 
             getUsers: async (parent, args, context) => {
                
                if (!context.user) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
-               return await models.User.findAll({include: models.Balance});
+               return await models.User.findAll();
 
             },
 
@@ -28,7 +33,7 @@ export default class User {
 
                if (context.user?.role !== 'CUSTOMER') throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
                
-               return await models.User.findByPk(id, {include: models.Balance})
+               return await models.User.findByPk(id);
             },
 
             authorizeUser: async (parent, { id, password }) => {
@@ -307,6 +312,7 @@ export default class User {
             status: String
             createdAt: String
             balance: Balance
+            order: [Order]
          }
      
       `

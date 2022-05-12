@@ -11,6 +11,10 @@ export default class Category {
    static resolver() {
       return {
 
+         Category: {
+            product: category => category.getProducts(),
+         },
+
          Query: {
             getCategories: async () => await models.Category.findAll(),
 
@@ -69,6 +73,7 @@ export default class Category {
             parentId: Int
             createdAt: String
             updatedAt: String
+            product: [Product]
          }
      
           
