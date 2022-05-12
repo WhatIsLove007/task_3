@@ -66,13 +66,18 @@ export default class Comment {
             userId: Int
             productId: Int
             commentId: Int
-            type: String
+            type: Type
             assesment: Int
             comment: String
             advantages: String
             disadvantages: String
             createdAt: String
             reactions: [Reaction]
+         }
+
+         enum Type {
+            REVIEW
+            COMMENT
          }
           
       `

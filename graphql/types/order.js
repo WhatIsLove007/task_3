@@ -47,9 +47,15 @@ export default class Order {
             id: Int
             userId: Int
             paid: Boolean
-            deliveryStatus: String
+            deliveryStatus: DeliveryStatus
             createdAt: String
             orderProduct: [OrderProduct]
+         }
+
+         enum DeliveryStatus {
+            IN_TRANSIT
+            DEKIVERED
+            RECEIVED
          }
      
           

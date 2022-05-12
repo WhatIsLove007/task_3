@@ -303,17 +303,23 @@ export default class User {
 
    static typeDefs() {
       return gql`
-      
+
          type User {
             id: Int
             email: String
             fullName: String
             phone: String
-            status: String
+            status: Status
             createdAt: String
             balance: Balance
             order: [Order]
          }
+
+         enum Status {
+            ACTIVE
+            BANNED
+         }
+   
      
       `
    }
