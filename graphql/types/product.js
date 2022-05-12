@@ -2,7 +2,9 @@ import {gql} from 'apollo-server-express';
 
 import models from '../../models';
 import {USER_ROLES} from '../../config/const.js';
-import * as userAuthentication from '../../utils/userAuthentication.js'
+import * as userAuthentication from '../../utils/userAuthentication.js';
+import {THROW_ERROR_MESSAGES} from '../../config/const.js';
+
 
 
 export default class Product {
@@ -21,15 +23,15 @@ export default class Product {
 
             addProduct: async (parent, {name, description, categoryId, price}, context) => {
 
-               if (context.user?.role !== USER_ROLES.ADMIN) throw new Error('FORBIDDEN');
+               if (context.user?.role !== USER_ROLES.ADMIN) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                try {
             
                   const existingProduct = await models.Product.findOne({where: {name}});
-                  if (existingProduct) throw new Error('Product already exists');
+                  if (existingProduct) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_ALREADY_EXISTS);
             
                   const category = await models.Category.findByPk(categoryId);
-                  if (!category) throw new Error('Category does not exist');
+                  if (!category) throw new Error(THROW_ERROR_MESSAGES.CATEGORY_NOT_FOUND);
             
                   const product = await category.createProduct({name, description, price});
             
@@ -43,12 +45,12 @@ export default class Product {
             
             removeProduct: async (parent, { id }, context) => {
 
-               if (context.user?.role !== USER_ROLES.ADMIN) throw new Error('FORBIDDEN');
+               if (context.user?.role !== USER_ROLES.ADMIN) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                try {
             
                   const existingProduct = await models.Product.destroy({where: {id}});
-                  if (!existingProduct) throw new Error('Product does not exist');
+                  if (!existingProduct) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
                   
                   return existingProduct;
                   

@@ -34,7 +34,6 @@ export default class Comment extends Model {
       },
       assessment: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false,
         validate: {
           min: 1,
           max: 5,
@@ -46,11 +45,9 @@ export default class Comment extends Model {
       },
       advantages: {
         type: DataTypes.TEXT,
-        allowNull: false,
       },
       disadvantages: {
         type: DataTypes.TEXT,
-        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,

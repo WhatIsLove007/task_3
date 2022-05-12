@@ -6,6 +6,8 @@ import * as entryDataValidation from '../../utils/entryDataValidation.js';
 import * as passwordHashing from '../../utils/passwordHashing.js';
 import * as userAuthentication from '../../utils/userAuthentication.js'
 import {USER_STATUSES}  from '../../config/const.js';
+import {THROW_ERROR_MESSAGES} from '../../config/const.js';
+
 
 
 export default class User {
@@ -16,7 +18,7 @@ export default class User {
 
             getUsers: async (parent, args, context) => {
                
-               if (!context.user) throw new Error('FORBIDDEN');
+               if (!context.user) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                return await models.User.findAll({include: models.Balance});
 
@@ -24,7 +26,7 @@ export default class User {
 
             getUser: async (parent, { id }, context) => {
 
-               if (context.user?.role !== 'CUSTOMER') throw new Error('FORBIDDEN');
+               if (context.user?.role !== 'CUSTOMER') throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
                
                return await models.User.findByPk(id, {include: models.Balance})
             },
@@ -35,10 +37,10 @@ export default class User {
                if (!entryDataValidation.validatePassword(password)) throw new Error('Incorrect password');
 
                const user = await models.User.findByPk(id);
-               if (!user) throw new Error('User not found');
+               if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
 
                if (!(await passwordHashing.compare(password, user.passwordHash))) {
-                  throw new Error('FORBIDDEN');
+                  throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
                }
 
                return ({user, authorization: userAuthentication.generateAccessToken(user.id, user.email)});
@@ -61,7 +63,7 @@ export default class User {
                }
          
                const user = await models.User.findOne({where: {email}});
-               if (user) throw new Error('User already exists');
+               if (user) throw new Error(THROW_ERROR_MESSAGES.USER_ALREADY_EXISTS);
          
                const newUser = await models.User.create({
                  email,
@@ -76,12 +78,12 @@ export default class User {
 
             replenishmentAccount: async (parent, { userId, amountOfMoney }, context) => {
 
-               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                if (amountOfMoney < 0) throw new Error('Incorrect amount of money');
                
                const user = await models.User.findByPk(userId, {include: models.Balance});
-               if (!user) throw new Error('User not found');
+               if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
 
                const resultedBalance = parseFloat(user.Balance.account) + amountOfMoney;
 
@@ -92,7 +94,7 @@ export default class User {
 
             addProductToOrder: async (parent, {userId, productId, productQuantity}, context) => {
 
-               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                if (!entryDataValidation.validatePositiveNumbers([userId, productId, productQuantity])) {
                   throw new Error('Incorrect data sent');
@@ -103,7 +105,7 @@ export default class User {
                try {
                   
                   const product = await models.Product.findByPk(productId);
-                  if (!product) throw new Error('Product does not exist');
+                  if (!product) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
                   
                   const user = await models.User.findByPk(userId, {
                      include: {
@@ -118,7 +120,7 @@ export default class User {
                      }
                   });
 
-                  if (!user) throw new Error('User does not exist');
+                  if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
 
                   if (!user.Orders.length) {
                      const order = await user.createOrder({}, {transaction});
@@ -155,7 +157,7 @@ export default class User {
 
             removeProductFromOrder: async (parent, {userId, productId, orderId}, context) => {
 
-               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                if (!entryDataValidation.validatePositiveNumbers([userId, productId, orderId])) {
                   throw new Error('Incorrect data sent');
@@ -164,7 +166,7 @@ export default class User {
                try {
             
                   const product = await models.Product.findByPk(productId);
-                  if (!product) throw new Error('Product does not exist');
+                  if (!product) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
             
                   const user = await models.User.findByPk(userId, {
                      include: {
@@ -180,8 +182,8 @@ export default class User {
                      attributes: ['id', 'email', 'fullName', 'phone'],
                   });
             
-                  if (!user) throw new Error('User does not exist');
-                  if (!user.Orders.length) throw new Error('Order does not exist');
+                  if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
+                  if (!user.Orders.length) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
                   if (!user.Orders[0].OrderProducts[0]) {
                      throw new Error('Product does not exist in order');
                   }
@@ -198,7 +200,7 @@ export default class User {
 
             removeOrder: async (parent, {userId, orderId}, context) => {
 
-               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                if (!entryDataValidation.validatePositiveNumbers([userId, orderId])) {
                   throw new Error('Incorrect data sent');
@@ -208,7 +210,7 @@ export default class User {
                try {
 
                   const order = await models.Order.findOne({where: {id: orderId, userId, paid: false}});
-                  if (!order) throw new Error('Order does not exist');
+                  if (!order) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
 
                   await order.destroy();
 
@@ -221,7 +223,7 @@ export default class User {
 
             completeOrder: async (parent, {userId, orderId}, context) => {
 
-               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                const transaction = await sequelize.transaction();
 
@@ -239,9 +241,9 @@ export default class User {
                      }
                   });
 
-                  if (!user) throw new Error('User not found');
+                  if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
 
-                  if (!user.Orders.length) throw new Error('Order not found');
+                  if (!user.Orders.length) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
 
                   if (!user.Orders[0].OrderProducts.length) throw new Error('No products in order');
 
@@ -273,7 +275,7 @@ export default class User {
 
                   const resultedAccount = balance.account - purchasePrice;
 
-                  if (resultedAccount < 0) throw new Error('Payment prohibited');
+                  if (resultedAccount < 0) throw new Error(THROW_ERROR_MESSAGES.PAYMENT_PROHIBITED);
 
                   await balance.update({account: resultedAccount}, {transaction});
                   await user.Orders[0].update({paid: true, orderPrice: purchasePrice}, {transaction});
@@ -304,7 +306,7 @@ export default class User {
             phone: String
             status: String
             createdAt: String
-            Balance: Balance
+            balance: Balance
          }
      
       `

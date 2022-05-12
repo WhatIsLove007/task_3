@@ -1,6 +1,8 @@
 import {gql} from 'apollo-server-express';
 
 import models from '../../models';
+import {THROW_ERROR_MESSAGES, REACTIONS_TO_COMMENT} from '../../config/const.js';
+
 
 
 export default class Reaction {
@@ -16,25 +18,32 @@ export default class Reaction {
             
             addReaction: async (parent, {commentId, userId, reaction}, context) => {
 
-               if (context.user?.id !== userId) throw new Error('FORBIDDEN');
+               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+
+               if (reaction !== REACTIONS_TO_COMMENT.LIKE 
+                  && reaction !== REACTIONS_TO_COMMENT.DISLIKE
+                  && reaction !== null) {
+
+                  throw new Error('Wrong reaction');
+               }
 
                const reactionTable = await models.Reaction.findOne({where: {commentId, userId}});
 
                let newReactionTable;
 
-               if (!reaction) {
+               if (!reactionTable) {
                   newReactionTable = await models.Reaction.create({commentId, userId, reaction});
                } else {
 
                   if (reaction === null) {
-                     reactionTable.destroy({});
+                     reactionTable.destroy();
                   }  else {
                      reactionTable.update({reaction});
                   }
 
                }
 
-               return (newReactionTable && reactionTable);
+               return (newReactionTable || reactionTable);
 
             }
 

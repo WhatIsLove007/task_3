@@ -8,7 +8,7 @@ import {
 
 
 export const generateAccessToken = (id, email) => {
-   return `Bearer ${jwt.sign({id, email}, AUTHORIZATION_ACCESS_SECRET_KEY, {expiresIn: '1h'})}`;
+   return `Bearer ${jwt.sign({id, email}, AUTHORIZATION_ACCESS_SECRET_KEY, {expiresIn: '30d'})}`;
 };
 
 export const authenticateToken = async authorization => {

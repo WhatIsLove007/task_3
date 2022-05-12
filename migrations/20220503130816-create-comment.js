@@ -32,7 +32,6 @@ module.exports = {
       },
       assessment: {
         type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false,
         validate: {
           min: 1,
           max: 5,
@@ -44,11 +43,9 @@ module.exports = {
       },
       advantages: {
         type: Sequelize.TEXT,
-        allowNull: false,
       },
       disadvantages: {
         type: Sequelize.TEXT,
-        allowNull: false,
       },
       createdAt: {
         type: Sequelize.DATE,

@@ -67,7 +67,7 @@ export const typeDefs = gql`
     addProduct(name: String, description: String!, categoryId: Int!, price: Float!): Product
     removeProduct(id: Int!): Product
 
-    addComment(userId: Int!, productId: Int!, commentId: Int, type: String!, assesment: Int, 
+    addComment(userId: Int!, productId: Int!, commentId: Int, type: String!, assessment: Int, 
       comment: String, advantages: String, disadvantages: String): Comment
     removeComment(id: Int!, userId: Int!): Comment
 

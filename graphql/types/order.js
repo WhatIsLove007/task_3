@@ -1,6 +1,8 @@
 import {gql} from 'apollo-server-express';
 
 import models from '../../models';
+import {THROW_ERROR_MESSAGES} from '../../config/const.js';
+
 
 
 export default class Order {
@@ -10,7 +12,7 @@ export default class Order {
          Query: {
             getOrder: async (_, { id }, context) => {
                
-               if (context.user?.id !== id) throw new Error('FORBIDDEN');
+               if (context.user?.id !== id) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
 
                return await models.Order.findByPk(id, {
                   include: {
