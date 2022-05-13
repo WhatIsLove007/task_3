@@ -40,7 +40,7 @@ export const typeDefs = gql`
 
     authorizeUser(id: Int!, password: String!): User
 
-    getOrder(id: Int!): Order
+    getOrder(orderId: Int!): Order
 
     getCategories: [Category]
 
@@ -53,9 +53,9 @@ export const typeDefs = gql`
 
 
   type Mutation {
-    createUser(email: String!, fullName: String!, phone: String!, password: String!): User!
+    logUp(input: LogUpInput): User!
 
-    replenishmentAccount(userId: Int!, amountOfMoney: Float!): User
+    replenishmentAccount(amountOfMoney: Float!): User
     addProductToOrder(userId: Int!, productId: Int!, productQuantity: Int): User
     removeProductFromOrder(userId: Int!, productId: Int!, orderId: Int!): User
     removeOrder(userId: Int!, orderId: Int!): User
@@ -64,14 +64,13 @@ export const typeDefs = gql`
     addCategory(name: String!, parentId: Int): Category
     removeCategory(id: Int!): Category
 
-    addProduct(name: String, description: String!, categoryId: Int!, price: Float!): Product
+    addProduct(input: AddProductInput!): Product
     removeProduct(id: Int!): Product
 
-    addComment(userId: Int!, productId: Int!, commentId: Int, type: String!, assessment: Int, 
-      comment: String!, advantages: String, disadvantages: String): Comment
+    addComment(input: CommentInput): Comment
     removeComment(id: Int!, userId: Int!): Comment
 
-    addReaction(commentId: Int!, userId: Int!, reaction: String): Reaction
+    addReaction(input: ReactionInput): Reaction
 
   }
 
@@ -81,7 +80,6 @@ export const typeDefs = gql`
 function combineResolvers() {
   return _.merge(
     User.resolver(),
-    Balance.resolver(),
     Order.resolver(),
     OrderProduct.resolver(),
     Product.resolver(),

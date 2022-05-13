@@ -2,6 +2,7 @@ import {gql} from 'apollo-server-express';
 
 import models from '../../models';
 import {THROW_ERROR_MESSAGES} from '../../config/const.js';
+import * as checkUserRights from '../../utils/checkUserRights.js';
 
 
 
@@ -14,29 +15,19 @@ export default class Order {
          },
 
          Query: {
-            getOrder: async (_, { id }, context) => {
+            getOrder: async (_, { orderId }, context) => {
                
-               if (context.user?.id !== id) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               const order = await models.Order.findByPk(orderId);
 
-               return await models.Order.findByPk(id, {
-                  include: {
-                     model: models.OrderProduct, 
-                     required: false,
-                     include: {
-                        model: models.Product,
-                        required: false,
-                        include: {
-                           model: models.Category,
-                           required: false,
-                     }
-                   }
-                 }
-               });
+               if (!order) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
+
+               checkUserRights.checkId(context, order.userId);
+
+               return order;
+
             },         
          },
 
-         Mutation: {         
-         }
       }
    }
 

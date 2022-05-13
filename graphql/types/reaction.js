@@ -9,41 +9,38 @@ export default class Reaction {
    static resolver() {
       return {
 
-         Query: {
-
-
-         },
 
          Mutation: {
             
-            addReaction: async (parent, {commentId, userId, reaction}, context) => {
+            addReaction: async (parent, {input}, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, input.userId);
 
-               if (reaction !== REACTIONS_TO_COMMENT.LIKE 
-                  && reaction !== REACTIONS_TO_COMMENT.DISLIKE
-                  && reaction !== null) {
+               const reaction = await models.Reaction.findOne({
+                  where: {
+                     commentId: input.commentId, 
+                     userId: input.userId
+                  }
+               });
 
-                  throw new Error('Wrong reaction');
-               }
+               let newReaction;
 
-               const reactionTable = await models.Reaction.findOne({where: {commentId, userId}});
-
-               let newReactionTable;
-
-               if (!reactionTable) {
-                  newReactionTable = await models.Reaction.create({commentId, userId, reaction});
+               if (!reaction) {
+                  newReaction = await models.Reaction.create({
+                     commentId: input.commentId, 
+                     userId: input.userId, 
+                     reaction: input.reaction});
                } else {
 
-                  if (reaction === null) {
-                     reactionTable.destroy();
+                  if (input.reaction === null) {
+                     reaction.destroy();
                   }  else {
-                     reactionTable.update({reaction});
+                     reaction.update({reaction: input.reaction});
                   }
 
                }
 
-               return (newReactionTable || reactionTable);
+               return (newReaction || reaction);
 
             }
 
@@ -57,10 +54,21 @@ export default class Reaction {
          type Reaction {
             commentId: Int
             userId: Int
-            reaction: String
+            reaction: ReactionField
             createdAt: String
          }
-          
+         
+         enum ReactionField {
+            ${REACTIONS_TO_COMMENT.LIKE}
+            ${REACTIONS_TO_COMMENT.DISLIKE}
+         }
+
+         input ReactionInput {
+            commentId: Int
+            userId: Int
+            reaction: ReactionField
+         }
+
       `
    }
 }

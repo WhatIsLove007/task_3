@@ -5,8 +5,9 @@ import models from '../../models';
 import * as entryDataValidation from '../../utils/entryDataValidation.js';
 import * as passwordHashing from '../../utils/passwordHashing.js';
 import * as userAuthentication from '../../utils/userAuthentication.js'
-import {USER_STATUSES}  from '../../config/const.js';
+import {USER_STATUSES, USER_ROLES}  from '../../config/const.js';
 import {THROW_ERROR_MESSAGES} from '../../config/const.js';
+import * as checkUserRights from '../../utils/checkUserRights.js'
 
 
 
@@ -23,40 +24,40 @@ export default class User {
 
             getUsers: async (parent, args, context) => {
                
-               if (!context.user) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkRole(context, USER_ROLES.ADMIN)
 
-               return await models.User.findAll();
+               return models.User.findAll();
 
             },
 
             getUser: async (parent, { id }, context) => {
 
-               if (context.user?.role !== 'CUSTOMER') throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkRole(context, id);
                
-               return await models.User.findByPk(id);
+               return models.User.findByPk(id);
             },
 
-            authorizeUser: async (parent, { id, password }) => {
+            authorizeUser: async (parent, { email, password }) => {
 
-               if (!id) throw new Error('Incorrect id');
+               if (!entryDataValidation.validateEmail(email)) throw new Error('Incorrect password');
                if (!entryDataValidation.validatePassword(password)) throw new Error('Incorrect password');
 
-               const user = await models.User.findByPk(id);
+               const user = await models.User.findOne({where: {email, password}});
                if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
 
                if (!(await passwordHashing.compare(password, user.passwordHash))) {
-                  throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+                  throw new Error(THROW_ERROR_MESSAGES.UNAUTHORIZED);
                }
 
-               return ({user, authorization: userAuthentication.generateAccessToken(user.id, user.email)});
+               return ({authorization: userAuthentication.generateAccessToken(user.id, user.email)});
 
             }
          },
 
          Mutation: {
-            createUser: async (parent, args) => {
+            logUp: async (parent, {input}) => {
 
-               const {email, password, fullName, phone} = args;
+               const {email, password, fullName, phone} = input;
          
                if (!entryDataValidation.validateEmail(email)) {
                  throw new Error('Incorrect email');
@@ -81,13 +82,13 @@ export default class User {
          
             },
 
-            replenishmentAccount: async (parent, { userId, amountOfMoney }, context) => {
+            replenishmentAccount: async (parent, {amountOfMoney}, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkRole(context, USER_ROLES.ADMIN);
 
                if (amountOfMoney < 0) throw new Error('Incorrect amount of money');
                
-               const user = await models.User.findByPk(userId, {include: models.Balance});
+               const user = await models.User.findByPk(context.user.id, {include: models.Balance});
                if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
 
                const resultedBalance = parseFloat(user.Balance.account) + amountOfMoney;
@@ -99,7 +100,8 @@ export default class User {
 
             addProductToOrder: async (parent, {userId, productId, productQuantity}, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, userId);
+
 
                if (!entryDataValidation.validatePositiveNumbers([userId, productId, productQuantity])) {
                   throw new Error('Incorrect data sent');
@@ -139,7 +141,7 @@ export default class User {
                      if (user.Orders[0].OrderProducts[0]) {
                         await user.Orders[0].OrderProducts[0].update({
                            quantity: user.Orders[0].OrderProducts[0].quantity + productQuantity,
-                        });
+                        }, {transaction});
 
                      }  else {
                         await user.Orders[0].createOrderProduct({
@@ -162,73 +164,61 @@ export default class User {
 
             removeProductFromOrder: async (parent, {userId, productId, orderId}, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, userId);
 
                if (!entryDataValidation.validatePositiveNumbers([userId, productId, orderId])) {
                   throw new Error('Incorrect data sent');
                }
 
-               try {
+               const product = await models.Product.findByPk(productId);
+               if (!product) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
             
-                  const product = await models.Product.findByPk(productId);
-                  if (!product) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
-            
-                  const user = await models.User.findByPk(userId, {
+               const user = await models.User.findByPk(userId, {
+                  include: {
+                     model: models.Order,
+                     where: {id: orderId},
+                     required: false,
                      include: {
-                        model: models.Order,
-                        where: {id: orderId},
+                        model: models.OrderProduct, 
+                        where: {productId}, 
                         required: false,
-                        include: {
-                           model: models.OrderProduct, 
-                           where: {productId}, 
-                           required: false,
-                        },
                      },
-                     attributes: ['id', 'email', 'fullName', 'phone'],
-                  });
+                  },
+                  attributes: ['id', 'email', 'fullName', 'phone'],
+               });
             
-                  if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
-                  if (!user.Orders.length) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
-                  if (!user.Orders[0].OrderProducts[0]) {
-                     throw new Error('Product does not exist in order');
-                  }
-            
-                  await user.Orders[0].OrderProducts[0].destroy();
-            
-                  return user;
-            
-               } catch (error) {
-                  throw new Error(error.message);
+               if (!user) throw new Error(THROW_ERROR_MESSAGES.USER_NOT_FOUND);
+               if (!user.Orders.length) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
+               if (!user.Orders[0].OrderProducts[0]) {
+                  throw new Error('Product does not exist in order');
                }
+            
+               await user.Orders[0].OrderProducts[0].destroy();
+            
+               return user;
             
             },
 
             removeOrder: async (parent, {userId, orderId}, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, userId);
 
                if (!entryDataValidation.validatePositiveNumbers([userId, orderId])) {
                   throw new Error('Incorrect data sent');
                }
 
- 
-               try {
+               const order = await models.Order.findOne({where: {id: orderId, userId, paid: false}});
+               if (!order) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
 
-                  const order = await models.Order.findOne({where: {id: orderId, userId, paid: false}});
-                  if (!order) throw new Error(THROW_ERROR_MESSAGES.ORDER_NOT_FOUND);
+               await order.destroy();
 
-                  await order.destroy();
+               return context.user;
 
-                  return context.user;
-
-               } catch (error) {
-                  throw new Error(error.message);
-               }
             },
 
             completeOrder: async (parent, {userId, orderId}, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, userId);
 
                const transaction = await sequelize.transaction();
 
@@ -320,7 +310,13 @@ export default class User {
             BANNED
          }
    
-     
+         input LogUpInput {
+            email: String!
+            fullName: String!
+            phone: String!
+            password: String!
+         }
+
       `
    }
 }

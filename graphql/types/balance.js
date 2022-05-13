@@ -2,16 +2,6 @@ import {gql} from 'apollo-server-express';
 
 
 export default class Balance {
-   static resolver() {
-      return {
-
-         Query: {
-         },
-
-         Mutation: {         
-         }
-      }
-   }
 
    static typeDefs() {
       return gql`

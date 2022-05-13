@@ -2,6 +2,7 @@ import {gql} from 'apollo-server-express';
 
 import models from '../../models';
 import {THROW_ERROR_MESSAGES, COMMENT_TYPES} from '../../config/const.js';
+import * as checkUserRights from '../../utils/checkUserRights.js';
 
 
 export default class Comment {
@@ -12,32 +13,28 @@ export default class Comment {
             reactions: comment => comment.getReactions(),
          },
 
-         Query: {
-
-            getComments: async (_, { productId }) => await models.Comment.findAll({where: {productId}}),
-                        
-         },
 
          Mutation: {
 
-            addComment: async (parent, { userId, productId, commentId, type, assessment,
-               comment, advantages, disadvantages }, context) => {
+            addComment: async (parent, { input }, context) => {
 
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, input.userId);
 
 
-               if (commentId) {
-                  const repliedComment = await models.Comment.findOne({where: {id: commentId, commentId: null}});
+               if (input.commentId) {
+                  const repliedComment = await models.Comment.findOne({where: {id: input.commentId, commentId: null}});
                   if (!repliedComment) throw new Error('Incorrect commentId')
                }
 
                
                return models.Comment.create({
-                  userId, 
-                  productId, 
-                  type,
-                  comment,
-                  ...(type === COMMENT_TYPES.REVIEW? {assessment, advantages, disadvantages} : {commentId}),
+                  userId: input.userId, 
+                  productId: input.productId, 
+                  type: input.type,
+                  comment: input.comment,
+                  ...(input.type === COMMENT_TYPES.REVIEW? {assessment: input.assessment, 
+                     advantages: input.advantages, 
+                     disadvantages: input.disadvantages} : {commentId: input.commentId}),
                });
 
 
@@ -45,7 +42,7 @@ export default class Comment {
 
             removeComment: async (parent, {id, userId}, context) => {
                
-               if (context.user?.id !== userId) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkId(context, userId);
 
                const comment = await models.Comment.findOne({where: {id, userId}});
 
@@ -78,6 +75,17 @@ export default class Comment {
          enum Type {
             REVIEW
             COMMENT
+         }
+
+         input CommentInput {
+            userId: Int!
+            productId: Int!
+            commentId: Int
+            type: Type!
+            assessment: Int
+            comment: String!
+            advantages: String
+            disadvantages: String
          }
           
       `

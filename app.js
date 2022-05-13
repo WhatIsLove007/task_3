@@ -8,14 +8,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 
-async function startApolloServer(typeDefs, resolvers) {
+async function startApolloServer() {
 
   const server = new ApolloServer({ typeDefs, resolvers, context });
   await server.start();
   server.applyMiddleware({app});
   
 }
-startApolloServer(typeDefs, resolvers, context);
+startApolloServer();
 
 
 app.use(express.json());

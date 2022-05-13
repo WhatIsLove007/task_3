@@ -9,11 +9,6 @@ export default class OrderProduct {
             product: orderProduct => orderProduct.getProduct(),
          },
 
-         Query: {
-         },
-
-         Mutation: {         
-         }
       }
    }
 

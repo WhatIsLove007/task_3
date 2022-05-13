@@ -4,6 +4,7 @@ import models from '../../models';
 import {USER_ROLES} from '../../config/const.js';
 import * as userAuthentication from '../../utils/userAuthentication.js';
 import {THROW_ERROR_MESSAGES} from '../../config/const.js';
+import * as checkUserRights from '../../utils/checkUserRights.js';
 
 
 
@@ -13,54 +14,46 @@ export default class Product {
 
          Product: {
             category: product => product.getCategory(),
+            comments: product => product.getComments(),
          },
 
          Query: {
-            getProducts: async () => await models.Product.findAll({include: models.Category}),
+            getProducts: async () => models.Product.findAll(),
 
-            getProduct: async (parent, { id }) => await models.Product.findByPk(id, {include: models.Category}),
+            getProduct: async (parent, { id }) => models.Product.findByPk(id),
             
 
          },
 
          Mutation: {
 
-            addProduct: async (parent, {name, description, categoryId, price}, context) => {
+            addProduct: async (parent, {input}, context) => {
 
-               if (context.user?.role !== USER_ROLES.ADMIN) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkRole(context, USER_ROLES.ADMIN);
 
-               try {
+               const {name, description, categoryId, price} = input;
+
             
-                  const existingProduct = await models.Product.findOne({where: {name}});
-                  if (existingProduct) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_ALREADY_EXISTS);
+               const existingProduct = await models.Product.findOne({where: {name}});
+               if (existingProduct) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_ALREADY_EXISTS);
             
-                  const category = await models.Category.findByPk(categoryId);
-                  if (!category) throw new Error(THROW_ERROR_MESSAGES.CATEGORY_NOT_FOUND);
+               const category = await models.Category.findByPk(categoryId);
+               if (!category) throw new Error(THROW_ERROR_MESSAGES.CATEGORY_NOT_FOUND);
             
-                  const product = await category.createProduct({name, description, price});
+               return category.createProduct({name, description, price});
             
-                  return product;
-                  
-               } catch (error) {
-                  throw new Error(error.message);
-               }
 
             },
             
             removeProduct: async (parent, { id }, context) => {
 
-               if (context.user?.role !== USER_ROLES.ADMIN) throw new Error(THROW_ERROR_MESSAGES.FORBIDDEN);
+               checkUserRights.checkRole(context, USER_ROLES.ADMIN);
 
-               try {
-            
-                  const existingProduct = await models.Product.destroy({where: {id}});
-                  if (!existingProduct) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
+               const existingProduct = await models.Product.destroy({where: {id}});
+               if (!existingProduct) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
                   
-                  return existingProduct;
+               return existingProduct;
                   
-               } catch (error) {
-                  throw new Error(error.message);
-               }
             
             }      
             
@@ -76,10 +69,18 @@ export default class Product {
             categoryId: Int
             name: String
             description: String
-            price: Int
+            price: Float
             createdAt: String
             updatedAt: String
             category: Category
+            comments: [Comment]
+         }
+
+         input AddProductInput {
+            name: String!
+            description: String!
+            categoryId: Int!
+            price: Float!
          }
      
           
