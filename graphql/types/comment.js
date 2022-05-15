@@ -16,27 +16,47 @@ export default class Comment {
 
          Mutation: {
 
-            addComment: async (parent, { input }, context) => {
+            addReview: async (parent, { input }, context) => {
 
-               checkUserRights.checkId(context, input.userId);
+               const {userId, productId, assessment, comment, advantages, disadvantages} = input;
 
+               checkUserRights.checkId(context, userId);
 
-               if (input.commentId) {
-                  const repliedComment = await models.Comment.findOne({where: {id: input.commentId, commentId: null}});
-                  if (!repliedComment) throw new Error('Incorrect commentId')
-               }
+               const product = await models.Product.findOne({where: {id: productId}});
+               if (!product) throw new Error(THROW_ERROR_MESSAGES.PRODUCT_NOT_FOUND);
 
-               
+               const review = await models.Comment.findOne({where: {userId, productId}});
+               if (review) throw new Error(THROW_ERROR_MESSAGES.REVIEW_ALREADY_EXISTS);
+
                return models.Comment.create({
-                  userId: input.userId, 
-                  productId: input.productId, 
-                  type: input.type,
-                  comment: input.comment,
-                  ...(input.type === COMMENT_TYPES.REVIEW? {assessment: input.assessment, 
-                     advantages: input.advantages, 
-                     disadvantages: input.disadvantages} : {commentId: input.commentId}),
+                  userId,
+                  productId, 
+                  assessment,
+                  comment,
+                  advantages, 
+                  disadvantages,
+                  type: COMMENT_TYPES.REVIEW,
                });
 
+
+            },
+
+            addComment: async (parent, { input }, context) => {
+
+               const { userId, commentId, comment } = input;
+
+               checkUserRights.checkId(context, userId);
+
+               const review = await models.Comment.findOne({where: {id: commentId}});
+               if (!review) throw new Error(THROW_ERROR_MESSAGES.COMMENT_NOT_FOUND);
+
+               return models.Comment.create({
+                  userId, 
+                  productId: review.productId,
+                  commentId,
+                  type: COMMENT_TYPES.COMMENT,
+                  comment,
+               });
 
             },
 
@@ -64,7 +84,7 @@ export default class Comment {
             productId: Int
             commentId: Int
             type: Type
-            assesment: Int
+            assessment: Int
             comment: String
             advantages: String
             disadvantages: String
@@ -77,15 +97,20 @@ export default class Comment {
             COMMENT
          }
 
+         input ReviewInput {
+            userId: Int!
+            productId: Int!
+            assessment: Int!
+            comment: String!
+            advantages: String!
+            disadvantages: String!
+         }
+
          input CommentInput {
             userId: Int!
             productId: Int!
-            commentId: Int
-            type: Type!
-            assessment: Int
+            commentId: Int!
             comment: String!
-            advantages: String
-            disadvantages: String
          }
           
       `

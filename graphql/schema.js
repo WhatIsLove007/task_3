@@ -36,15 +36,16 @@ export const typeDefs = gql`
 
   type Query {
     getUsers: [User]
-    getUser(id: Int): User!
+    getUser(id: Int): User
+    getUserStatistics: UserStatistics
 
     authorizeUser(id: Int!, password: String!): User
 
     getOrder(orderId: Int!): Order
 
     getCategories: [Category]
-
-    getProducts: [Product]
+    
+    getProducts(input: GetProductsInput): [Product]
     getProduct(id: Int): Product
 
     getComments(productId: Int!): [Comment]
@@ -53,7 +54,7 @@ export const typeDefs = gql`
 
 
   type Mutation {
-    logUp(input: LogUpInput): User!
+    signup(input: SignupInput): LoginResponse
 
     replenishmentAccount(amountOfMoney: Float!): User
     addProductToOrder(userId: Int!, productId: Int!, productQuantity: Int): User
@@ -67,6 +68,7 @@ export const typeDefs = gql`
     addProduct(input: AddProductInput!): Product
     removeProduct(id: Int!): Product
 
+    addReview(input: ReviewInput): Comment
     addComment(input: CommentInput): Comment
     removeComment(id: Int!, userId: Int!): Comment
 

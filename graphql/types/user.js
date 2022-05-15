@@ -5,7 +5,7 @@ import models from '../../models';
 import * as entryDataValidation from '../../utils/entryDataValidation.js';
 import * as passwordHashing from '../../utils/passwordHashing.js';
 import * as userAuthentication from '../../utils/userAuthentication.js'
-import {USER_STATUSES, USER_ROLES}  from '../../config/const.js';
+import {USER_STATUSES, USER_ROLES, COMMENT_TYPES}  from '../../config/const.js';
 import {THROW_ERROR_MESSAGES} from '../../config/const.js';
 import * as checkUserRights from '../../utils/checkUserRights.js'
 
@@ -51,11 +51,54 @@ export default class User {
 
                return ({authorization: userAuthentication.generateAccessToken(user.id, user.email)});
 
+            },
+
+            getUserStatistics: async (parent, {}, context) => {
+
+               checkUserRights.checkRole(context, USER_ROLES.ADMIN);
+
+
+               const mostExpensiveOrder = await models.Order.findOne({
+                  subQuery: false,
+                  where: {
+                     paid: true,
+                  },
+                  include: {
+                     model: models.OrderProduct,
+                     attributes: [
+                        [sequelize.fn('SUM', sequelize.col('purchasePrice')), 'totalPurchasePrice'],
+                     ],   
+                  },
+                  order: [
+                     [sequelize.fn('MAX', sequelize.col('OrderProducts.purchasePrice')), 'DESC'],
+                  ],
+                  group: 'id',
+                  raw: true,
+               });
+
+
+               return {
+                  numberOfCustomers: models.User.count({where: {role: USER_ROLES.CUSTOMER}}),
+                  numberOfManagers: models.User.count({where: {role: USER_ROLES.MANAGER}}),
+                  numberOfAdmins: models.User.count({where: {role: USER_ROLES.ADMIN}}),
+                  activeUsers: models.User.count({where: {status: USER_STATUSES.ACTIVE}}),
+                  bannedUsers: models.User.count({where: {status: USER_STATUSES.BANNED}}),
+                  totalUsers: models.User.count(),
+                  sumOfMoneyOfAllUsers: models.Balance.sum('account'),
+                  sumOfMoneySpentByAllUsers: models.OrderProduct.sum('purchasePrice'),
+                  mostExpensiveOrder: mostExpensiveOrder['OrderProducts.totalPurchasePrice'],
+                  mostExpensivePurchasedProduct: models.OrderProduct.max('purchasePrice'),
+                  maxDiscount: models.Balance.max('discount'),
+                  sumOfReviewsLeftByUsers: models.Comment.count({where: {type: COMMENT_TYPES.REVIEW}}),
+                  sumOfCommentsLeftByUsers: models.Comment.count({where: {type: COMMENT_TYPES.COMMENT}}),
+               };
+
             }
+
          },
 
          Mutation: {
-            logUp: async (parent, {input}) => {
+            signup: async (parent, {input}) => {
 
                const {email, password, fullName, phone} = input;
          
@@ -67,18 +110,31 @@ export default class User {
                  throw new Error('Incorrect password');
          
                }
-         
-               const user = await models.User.findOne({where: {email}});
-               if (user) throw new Error(THROW_ERROR_MESSAGES.USER_ALREADY_EXISTS);
-         
-               const newUser = await models.User.create({
-                 email,
-                 passwordHash: await passwordHashing.hash(password),
-                 fullName,
-                 phone,
-                 status: USER_STATUSES.ACTIVE,
-               });
-               return ({newUser, authorization: userAuthentication.generateAccessToken(newUser.id, newUser.email)});
+               
+               const transaction = await sequelize.transaction();
+
+               try {
+                  const existingUser = await models.User.findOne({where: {email}});
+                  if (existingUser) throw new Error(THROW_ERROR_MESSAGES.USER_ALREADY_EXISTS);
+
+                  const newUser = await models.User.create({
+                     email,
+                     fullName,
+                     phone,
+                     status: USER_STATUSES.ACTIVE,
+                     passwordHash: await passwordHashing.hash(password),
+                  }, {transaction});
+
+                  await newUser.createBalance({}, {transaction});
+
+                  await transaction.commit();
+
+                  return {authorization: userAuthentication.generateAccessToken(newUser.id, newUser.email)};
+
+               } catch (error) {
+                  console.log(error);
+                  await transaction.rollback();
+               }
          
             },
 
@@ -310,13 +366,34 @@ export default class User {
             BANNED
          }
    
-         input LogUpInput {
+         input SignupInput {
             email: String!
             fullName: String!
             phone: String!
             password: String!
          }
 
+         type UserStatistics {
+            numberOfCustomers: Int
+            numberOfManagers: Int
+            numberOfAdmins: Int
+            activeUsers: Int
+            bannedUsers: Int
+            totalUsers: Int
+            sumOfMoneyOfAllUsers: Float
+            sumOfMoneySpentByAllUsers: Float
+            mostExpensiveOrder: Float
+            mostExpensivePurchasedProduct: Float
+            maxDiscount: Int
+            sumOfReviewsLeftByUsers: Int
+            sumOfCommentsLeftByUsers: Int
+         }
+
+         type LoginResponse {
+            authorization: String!
+            message: String
+          }
+        
       `
    }
 }

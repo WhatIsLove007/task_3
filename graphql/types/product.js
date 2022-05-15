@@ -1,4 +1,5 @@
 import {gql} from 'apollo-server-express';
+import {Op} from 'sequelize';
 
 import models from '../../models';
 import {USER_ROLES} from '../../config/const.js';
@@ -18,7 +19,31 @@ export default class Product {
          },
 
          Query: {
-            getProducts: async () => models.Product.findAll(),
+
+            getProducts: async (parent, { input }) => {
+
+               const { productName, categoryName, sortKey, sortKeyDirection, gte, lte, limit, offset } = input;
+               
+               return models.Product.findAll({
+                  where: {
+                     [Op.or]: [
+                        {name: {[Op.like]: `%${productName}%`}},
+                        {description: {[Op.like]: `%${productName}%`}},
+                     ],
+                     price: {[Op.gte]: gte},
+                     price: {[Op.lte]: lte}, 
+                  },
+                  include: {
+                     model: models.Category,
+                     where: {name: {[Op.like]: `%${categoryName}%`}},
+                     attributes: ['id', 'name']
+                  },
+                  limit,
+                  offset,
+                  order: [[sortKey, sortKeyDirection]],
+               });
+                  
+            },
 
             getProduct: async (parent, { id }) => models.Product.findByPk(id),
             
@@ -83,6 +108,26 @@ export default class Product {
             price: Float!
          }
      
+         input GetProductsInput {
+            productName: String!
+            categoryName: String!
+            sortKey: SortKey!
+            sortKeyDirection: SortKeyDirection!
+            gte: Int!
+            lte: Int!
+            limit: Int!
+            offset: Int!
+         }
+
+         enum SortKey {
+            price
+            createdAt
+         }
+
+         enum SortKeyDirection {
+            DESC
+            ASC
+         }
           
       `
    }
